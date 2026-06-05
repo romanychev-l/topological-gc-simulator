@@ -19,8 +19,8 @@ keywords = [
 dependencies = ["matplotlib>=3.7"]
 
 [project.urls]
-# TODO: set once the repository is published
-# Homepage = "https://github.com/<user>/topological-gc-simulator"
+Homepage = "https://github.com/romanychev-l/topological-gc-simulator"
+Repository = "https://github.com/romanychev-l/topological-gc-simulator"
 
 [tool.uv]
 package = false
