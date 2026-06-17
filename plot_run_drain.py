@@ -81,17 +81,18 @@ def run() -> None:
     def hrs(seconds: list[float]) -> list[float]:
         return [s / 3600.0 for s in seconds]
 
-    fig, (ax_a, ax_b) = plt.subplots(2, 1, figsize=(10.0, 7.8))
+    fig, (ax_a, ax_b) = plt.subplots(2, 1, figsize=(10.0, 8.8),
+                                     constrained_layout=True)
 
     # ---------------- panel (a): backlog over time --------------------
     ax_a.plot(hrs(dfr.grid_t), to_tb(dfr.backlog), color=C_DEF,
-              linewidth=2.0, label="Отложенная (Deferred)")
+              linewidth=2.0, label="Отложенная")
     ax_a.plot(hrs(imm.grid_t), to_tb(imm.backlog), color=C_IMM,
-              linewidth=2.0, label="Событийная (Immediate)")
+              linewidth=2.0, label="Событийная")
 
     ax_a.axvspan(0, RUN_HOURS, color="grey", alpha=0.10)
-    ax_a.text(RUN_HOURS / 2, ax_a.get_ylim()[1] * 0.93,
-              f"сеанс приёма данных, {RUN_HOURS:.0f} ч", color="dimgrey",
+    ax_a.text(RUN_HOURS / 2, ax_a.get_ylim()[1] * 0.78,
+              f"приём данных\n({RUN_HOURS:.0f} ч)", color="dimgrey",
               fontsize=9, ha="center", va="top")
 
     for res, color, name in ((imm, C_IMM, "Событийная"),
@@ -129,8 +130,8 @@ def run() -> None:
                for t in taus]
     tau_min = [t / 60.0 for t in taus]
 
-    ax_b.plot(tau_min, gap_dfr, color=C_DEF, linewidth=2.0, label="Отложенная (Deferred)")
-    ax_b.plot(tau_min, gap_imm, color=C_IMM, linewidth=2.0, label="Событийная (Immediate)")
+    ax_b.plot(tau_min, gap_dfr, color=C_DEF, linewidth=2.0, label="Отложенная")
+    ax_b.plot(tau_min, gap_imm, color=C_IMM, linewidth=2.0, label="Событийная")
 
     # mark the keep-up threshold for Immediate (gap collapses to ~0)
     tau_thr_min = (imm.concurrency / LAMBDA / L) / 60.0
@@ -164,8 +165,6 @@ def run() -> None:
     ax_b.spines["right"].set_visible(False)
     ax_b.set_xlim(TAU_MIN_S / 60.0, TAU_MAX_S / 60.0)
     ax_b.legend(loc="center right", frameon=False)
-
-    plt.tight_layout()
 
     OUT_DIR.mkdir(exist_ok=True)
     pdf = OUT_DIR / "run_drain.pdf"
