@@ -455,7 +455,20 @@ def simulate_backlog(
     the throughput ratio between the policies exactly visible and keeps
     the buffer ceiling provably respected (no overflow, no deadlock). A
     pipelined scheduler would raise both throughputs by a constant factor
-    but leave their ratio — the subject of the comparison — unchanged.
+    but leave their ratio — the subject of the comparison — unchanged
+    (empirically verified: the imm/def throughput ratio is ~9.2 here under
+    the M/G/C model of ``simulate_run`` and ~9.6 under these rounds, both
+    ≈ L = 10).
+
+    That invariance concerns the *scheduling discipline* (rounds vs.
+    pipeline) and is separate from the admission *unit*: charging each chain
+    its PEAK footprint (``size`` for Immediate, ``L*size`` for Deferred) is
+    conservative for Deferred, whose true occupancy ramps 0,d,…,(L-1)d
+    (time-average ≈ (L-1)/2·d, i.e. ~4.5d at L=10 vs. the 10d peak).
+    Admitting by time-average occupancy instead would fit ~2x more Deferred
+    chains and shrink the M/w advantage toward ~L/2. Peak reservation is the
+    safe choice under a hard V_max (simultaneous peaks must not overflow);
+    see the article's "peak vs. average footprint" remark.
 
     Returns
     -------
@@ -576,6 +589,13 @@ def simulate_run(
 
         Immediate: footprint = size       -> C = v_max / size
         Deferred:  footprint = L * size    -> C = v_max / (L * size)
+
+    This is the PEAK footprint, held for the whole service time. A Deferred
+    chain's true occupancy ramps 0,d,…,(L-1)d (time-average ≈ (L-1)/2·d), so
+    reserving L*size throughout is a conservative (worst-case) admission rule
+    — the correct one under a hard v_max, but it makes M/w = L an upper bound;
+    the time-averaged advantage is ~L/2 (see the article's peak-vs-average
+    remark).
 
     The system is then an M/G/C queue with ``C`` servers: each admitted
     chain occupies one buffer reservation for its whole processing time
