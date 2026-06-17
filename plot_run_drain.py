@@ -157,14 +157,12 @@ def run() -> None:
     ax_b.set_xlabel("Время обработки одной стадии $\\tau$, мин")
     ax_b.set_ylabel("Необходимый перерыв между сеансами, ч (лог. шкала)")
     ax_b.set_title(
-        f"(б) Необходимый перерыв между сеансами в зависимости от $\\tau$ "
-        f"(точки — стохастический прогон при "
-        f"$\\bar\\tau={tau_mean_min:.1f}$ мин)"
+        "(б) Необходимый перерыв между сеансами в зависимости от $\\tau$"
     )
     ax_b.spines["top"].set_visible(False)
     ax_b.spines["right"].set_visible(False)
     ax_b.set_xlim(TAU_MIN_S / 60.0, TAU_MAX_S / 60.0)
-    ax_b.legend(loc="center right", frameon=False)
+    ax_b.legend(loc="upper left", frameon=False)
 
     OUT_DIR.mkdir(exist_ok=True)
     pdf = OUT_DIR / "run_drain.pdf"
