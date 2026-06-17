@@ -40,7 +40,7 @@ def run() -> None:
         ("Линейная цепочка\n(глубина 10)", build_fanout_tree(10, 1)),
         ("Дерево\n$b=2$, глубина 5", build_fanout_tree(5, 2)),
         ("Дерево\n$b=3$, глубина 4", build_fanout_tree(4, 3)),
-        ("Широкий fan-out\n$b=16$, глубина 2", build_fanout_tree(2, 16)),
+        ("Широкое ветвление\n$b=16$, глубина 2", build_fanout_tree(2, 16)),
     ]
 
     labels: list[str] = []
@@ -67,9 +67,9 @@ def run() -> None:
 
     ax.set_xticks(list(x))
     ax.set_xticklabels(labels, fontsize=9)
-    ax.set_ylabel("Выигрыш событийной политики $M/w$")
+    ax.set_ylabel("Выигрыш событийной политики $M/w$ (раз)")
     ax.set_ylim(0, max(ratios) * 1.25)
-    ax.set_title("Выигрыш Immediate-политики в зависимости от формы графа "
+    ax.set_title("Выигрыш событийной политики в зависимости от формы графа "
                  "(измерено имитатором)")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)

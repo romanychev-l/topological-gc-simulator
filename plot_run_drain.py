@@ -85,32 +85,32 @@ def run() -> None:
 
     # ---------------- panel (a): backlog over time --------------------
     ax_a.plot(hrs(dfr.grid_t), to_tb(dfr.backlog), color=C_DEF,
-              linewidth=2.0, label="Deferred")
+              linewidth=2.0, label="Отложенная (Deferred)")
     ax_a.plot(hrs(imm.grid_t), to_tb(imm.backlog), color=C_IMM,
-              linewidth=2.0, label="Immediate")
+              linewidth=2.0, label="Событийная (Immediate)")
 
     ax_a.axvspan(0, RUN_HOURS, color="grey", alpha=0.10)
     ax_a.text(RUN_HOURS / 2, ax_a.get_ylim()[1] * 0.93,
-              f"ран (приём данных, {RUN_HOURS:.0f} ч)", color="dimgrey",
+              f"сеанс приёма данных, {RUN_HOURS:.0f} ч", color="dimgrey",
               fontsize=9, ha="center", va="top")
 
-    for res, color, name in ((imm, C_IMM, "Immediate"),
-                             (dfr, C_DEF, "Deferred")):
+    for res, color, name in ((imm, C_IMM, "Событийная"),
+                             (dfr, C_DEF, "Отложенная")):
         fin_h = res.finish_time / 3600.0
         gap_h = res.required_gap / 3600.0
         ax_a.axvline(fin_h, color=color, linestyle="--", linewidth=0.9,
                      alpha=0.7)
         ax_a.annotate(
             f"{name}: перерыв ≈ {gap_h:.0f} ч",
-            xy=(fin_h, 0), xytext=(fin_h, ax_a.get_ylim()[1] * (0.55 if name == "Deferred" else 0.30)),
+            xy=(fin_h, 0), xytext=(fin_h, ax_a.get_ylim()[1] * (0.55 if name == "Отложенная" else 0.30)),
             color=color, fontsize=9, ha="right", va="center",
             rotation=90,
         )
 
-    ax_a.set_xlabel("Время от начала рана, ч")
-    ax_a.set_ylabel("Необработанные данные, ТБ")
+    ax_a.set_xlabel("Время от начала сеанса, ч")
+    ax_a.set_ylabel("Накопленный остаток (поступило − обработано), ТБ")
     ax_a.set_title(
-        f"(а) Разбор бэклога после одного {RUN_HOURS:.0f}-часового рана "
+        f"(а) Разбор накопленного остатка после одного {RUN_HOURS:.0f}-часового сеанса "
         f"($V_{{\\max}}={V_MAX_TB:.0f}$ ТБ, $L={L}$, "
         f"$\\tau\\sim U({TAU_MIN_S/60:.0f},{TAU_MAX_S/60:.0f})$ мин)"
     )
@@ -129,8 +129,8 @@ def run() -> None:
                for t in taus]
     tau_min = [t / 60.0 for t in taus]
 
-    ax_b.plot(tau_min, gap_dfr, color=C_DEF, linewidth=2.0, label="Deferred")
-    ax_b.plot(tau_min, gap_imm, color=C_IMM, linewidth=2.0, label="Immediate")
+    ax_b.plot(tau_min, gap_dfr, color=C_DEF, linewidth=2.0, label="Отложенная (Deferred)")
+    ax_b.plot(tau_min, gap_imm, color=C_IMM, linewidth=2.0, label="Событийная (Immediate)")
 
     # mark the keep-up threshold for Immediate (gap collapses to ~0)
     tau_thr_min = (imm.concurrency / LAMBDA / L) / 60.0
@@ -138,7 +138,7 @@ def run() -> None:
         ax_b.axvline(tau_thr_min, color=C_IMM, linestyle=":", linewidth=0.8,
                      alpha=0.6)
         ax_b.text(tau_thr_min - 0.1, floor_h * 1.5,
-                  "Immediate\nуспевает\nв реальном\nвремени",
+                  "Событийная\nуспевает\nв реальном\nвремени",
                   color=C_IMM, fontsize=7.5, ha="right", va="bottom")
 
     # mark the simulated mean-tau points
@@ -154,9 +154,9 @@ def run() -> None:
 
     ax_b.set_yscale("log")
     ax_b.set_xlabel("Время обработки одной стадии $\\tau$, мин")
-    ax_b.set_ylabel("Нужный перерыв между ранами, ч (лог)")
+    ax_b.set_ylabel("Необходимый перерыв между сеансами, ч (лог. шкала)")
     ax_b.set_title(
-        f"(б) Нужный перерыв в зависимости от неизвестного $\\tau$ "
+        f"(б) Необходимый перерыв между сеансами в зависимости от $\\tau$ "
         f"(точки — стохастический прогон при "
         f"$\\bar\\tau={tau_mean_min:.1f}$ мин)"
     )
