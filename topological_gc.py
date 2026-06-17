@@ -240,10 +240,12 @@ class Workflow:
             task.status = TaskStatus.FINISHED
             task.finished_at = t
 
-            if self.policy == "immediate":
-                for ds_id in list(self.datasets):
-                    if self.can_delete(ds_id):
-                        self.datasets[ds_id].deleted_at = t
+            if self.policy == "immediate" and task.input_id is not None:
+                # Event-local sweep: finishing this task can only newly satisfy
+                # CanDelete for its OWN input dataset (whose consumer set just
+                # went terminal) — no need to rescan the whole graph.
+                if self.can_delete(task.input_id):
+                    self.datasets[task.input_id].deleted_at = t
             sample()
 
         if self.policy == "deferred" and not self.is_active():
@@ -384,7 +386,11 @@ def measure_footprints(wf: Workflow) -> tuple[int, int]:
             if wf.datasets[ds_id].is_boundary:
                 continue
             consumers = wf.consumers(ds_id)
-            if consumers and all(status[c] in TERMINAL for c in consumers):
+            # Vacuous-∀ matches can_delete / eq. (1): a non-boundary dataset
+            # with no consumers is freed (all([]) is True). The builders never
+            # produce such dead-ends, so measured M/w is unchanged; this only
+            # keeps the predicate identical to the article's.
+            if all(status[c] in TERMINAL for c in consumers):
                 live.discard(ds_id)
         peak = max(peak, len(live))
 
@@ -514,7 +520,7 @@ def simulate_backlog(
     for r in range(n_rounds):
         batch = min(concurrency, n_chains - r * concurrency)
         t0 = r * round_total
-        n_steps = int(round_total / dt) + 1
+        n_steps = math.ceil(round_total / dt)   # hits e=round_total exactly once
         for s in range(n_steps + 1):
             e = min(s * dt, round_total)
             times.append(t0 + e)
@@ -660,9 +666,12 @@ def simulate_run(
 
     finish_time = completion_times[-1]
     required_gap = max(0.0, finish_time - run_duration)
-    # "keeps up" = the buffer-limited throughput is at least the arrival rate,
-    # so no unbounded backlog forms during the run.
-    keeps_up = required_gap <= 1.5 * (L * 0.5 * (stage_time_min + stage_time_max))
+    # "keeps up" = the buffer-limited throughput mu is at least the arrival
+    # rate, so no unbounded backlog forms during the run (the condition the
+    # field name actually means: mu = C / (L * mean-stage-time) >= lambda).
+    tau_mean = 0.5 * (stage_time_min + stage_time_max)
+    mu = concurrency / (L * tau_mean)
+    keeps_up = mu >= arrival_rate
 
     # backlog(t) = arrived(t) − completed(t) on a regular grid
     grid_t: list[float] = []
