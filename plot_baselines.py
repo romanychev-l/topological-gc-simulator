@@ -43,7 +43,7 @@ def run() -> None:
     fig, ax = plt.subplots(figsize=(9.0, 5.0), constrained_layout=True)
 
     ax.step(tr.times, tr.occ_refcount, where="post", color=C_RC, linewidth=2.0,
-            label="Подсчёт ссылок")
+            label="Подсчёт ссылок (по успеху)")
     ax.step(tr.times, tr.occ_ttl, where="post", color=C_TTL, linewidth=2.0,
             label=f"TTL (срок ${tr.ttl:.0f}\\tau$)")
     ax.step(tr.times, tr.occ_semantic, where="post", color=C_SEM, linewidth=2.0,
